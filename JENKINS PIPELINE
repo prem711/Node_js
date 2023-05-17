@@ -1,0 +1,37 @@
+pipeline {
+    tools {
+        maven 'maven'
+    }
+    agent any
+    
+    
+    stages {
+        stage('checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/prem711/task3.git']])
+            }
+        }
+        
+        stage('DOCKER BUILD') {
+           steps {
+                sh 'docker build -t new11:v11 .'
+           } 
+               
+        }
+        
+        stage('DOCKER CONTAINER') {
+            steps {
+                withCredentials([string(credentialsId: 'prem', variable: 'prem')]) {
+                   sh 'docker login -u p7110 -p ${prem}'
+                   sh 'docker tag new11:v11 p7110/task3:v11'
+                   sh 'docker push p7110/task3:v11'
+                   sh 'docker run -d -p 3000:3000 new11:v11 npm start'
+                }
+            }
+        }
+        
+      
+    }
+    
+    
+}
